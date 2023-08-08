@@ -46,8 +46,9 @@ def create_df(nb_records, dataset_name):
     datasets = [dataset_name for x in range(nb_records)]
     df =pd.DataFrame({"polarity": polarities, "source": sources, "date": dates, "language": languages, "dataset": datasets})
     df['date'] = pd.to_datetime(df['date'])
-    df['date'] = df['date'].dt.to_period('M')
+    df['month']=pd.to_datetime(df['date']).dt.strftime('%Y-%m')
         # Group by month and calculate mean polarity
+    #print(df)
     return df
 
 
@@ -78,22 +79,18 @@ def main():
     if tabs == "Data Visualization":
         # Upload CSV files
         uploaded_files = True #st.file_uploader("Upload CSV files", type="csv", accept_multiple_files=True)
-
         if uploaded_files:
-            # dataframes = load_data(uploaded_files)
 
             # Checkbox to select dataframes
             selected_dataframes = st.multiselect("Select Dataframes to Display", datasets_names, [datasets_names[0]])
-            print(selected_dataframes)
             if selected_dataframes:
-                print('ok')
                 # Prepare data for Altair plot
                 # Altair line chart
-                filtered_df = full_df[full_df['dataset'] in selected_dataframes]
+                filtered_df = full_df[full_df['dataset'].isin(selected_dataframes)]
                 chart = alt.Chart(filtered_df).mark_line().encode(
-                    x=alt.X('date:T', title='Month'),
-                    y=alt.Y('polarity:Q', title='Mean Polarity'),
-                    tooltip=['date:T', 'polarity:Q'],
+                    x=alt.X('month:O', title='Month'),
+                    y=alt.Y('mean(polarity):Q', title='Mean Polarity'),
+                    tooltip=['month:O', 'mean(polarity):Q'],
                     color=alt.Color("dataset:N", legend=alt.Legend(title="Topics"))
                 ).properties(
                     width=800,
