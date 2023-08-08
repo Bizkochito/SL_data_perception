@@ -33,7 +33,10 @@ def random_date(start, end):
   return (start + datetime.timedelta(
       seconds=random.randint(0, int((end - start).total_seconds())))).isoformat()
 
-st.cache_data
+
+#hello
+
+@st.cache_data
 def create_df(nb_records, dataset_name):
     headers = ["polarity", "source", "date", "title", "text", "language"]
     #200 articles
@@ -45,8 +48,8 @@ def create_df(nb_records, dataset_name):
     languages = [random.sample(languages_ref, 1)[0] for x in range(nb_records)]
     datasets = [dataset_name for x in range(nb_records)]
     df =pd.DataFrame({"polarity": polarities, "source": sources, "date": dates, "language": languages, "dataset": datasets})
-    df['date'] = pd.to_datetime(df['date'])
-    df['month']=pd.to_datetime(df['date']).dt.strftime('%Y-%m')
+    df['date']  = pd.to_datetime(df['date'])
+    df['month'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m')
         # Group by month and calculate mean polarity
     #print(df)
     return df
