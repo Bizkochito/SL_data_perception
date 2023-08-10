@@ -46,16 +46,17 @@ if __name__=="__main__":
     # Extracting one doc out of the database so you can test your function on it.
     # please check the output, they're going to run this on 3M articles.
     load_dotenv()
-    
-    client = pymongo.MongoClient(os.getenv("MONGODB_URI"))
+    mongodb_uri = os.getenv("MONGODB_URI")
+    client = pymongo.MongoClient(mongodb_uri)
     db = client["bouman_datatank"]
     collection = db["articles"]
     doc = collection.find_one()
     # Testing every function one by one
 
-    doc.update({'embedding' : get_embedding(doc)})
+
     doc.update({'source' : get_source(doc)})
     doc.update({'language' : get_language(doc)})
+    doc.update({'embedding' : get_embedding(doc)})
     doc.update({'cos_score' : get_score(doc)})
     doc.update({'data_related' : get_data_related(doc)})
     doc.update({'polarity' : get_polarity(doc)})
