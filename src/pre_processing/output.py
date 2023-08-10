@@ -10,6 +10,7 @@
 import pymongo
 from pymongo import MongoClient
 from typing import List
+from src.get_polarity import get_polarity
 
 def get_embeddings(doc: dict) -> List[List[float]]:
     pass
@@ -44,5 +45,5 @@ if __name__=="__main__":
     collection = db["articles"]
     doc = collection.find_one()
     # Use doc as a test
-    print(type(doc))
+    print(type(doc)) 
 
