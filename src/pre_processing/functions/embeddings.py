@@ -1,13 +1,13 @@
 from sentence_transformers import SentenceTransformer, util
 import torch
-
+import numpy as np
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
 
 def compute_embedding(doc):
     # tag = embedding
     if "text" not in doc :
-        return [0]*384
+        return np.array([0]*384)
     article = doc["text"]
     article_embedding = embedder.encode(article, convert_to_tensor=False)
     return article_embedding

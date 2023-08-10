@@ -30,26 +30,27 @@ if __name__ == "__main__":
     counter = 0
     for doc in docs:
         counter += 1
+        print(counter,doc["url"])
         # Testing every function one by one
         embedding = embeddings.compute_embedding(doc)
         #print(embedding)
-        source = source.get_source_url(doc)
+        source_name = source.get_source_url(doc)
         language = languages.language_getter(doc)
         cos_score = embeddings.cos_score(embedding)
         data_related = embeddings.data_related(cos_score)
-        polarity = polarity.compute_polarity(doc,language)
+        polarity_score = polarity.compute_polarity(doc,language)
 
         #print(counter, doc["url"])
         collection.update_one(
             {"_id": doc["_id"]},
             {
                 "$set": {
-                    "embedding": embedding,
-                    "source": source,
+                    "embedding": embedding.tolist(),
+                    "source": source_name,
                     "language": language,
                     "cos_score": cos_score,
                     "data_related": data_related,
-                    "polarity": polarity,
+                    "polarity": polarity_score,
                 }
             },
         )
