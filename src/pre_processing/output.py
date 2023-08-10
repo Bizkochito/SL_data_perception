@@ -12,7 +12,8 @@ from typing import List
 
 def get_embeddings(doc: dict) -> List[List[float]]:
     pass
-    return 
+    embeddings = some_function(doc['text'])
+    return embeddings
 
 def get_language(doc: dict) -> str:
     pass
@@ -43,5 +44,5 @@ if __name__=="__main__":
     collection = db["articles"]
     doc = collection.find_one()
     # Use doc as a test
-    print(type(doc))
+    print(doc)
 
