@@ -11,6 +11,7 @@ import datetime
 from datetime import date
 from datetime import datetime
 import pytz
+from sentence_transformers import SentenceTransformer, util
 
 def get_articles(articles_limit=1000):
     load_dotenv()
@@ -65,20 +66,20 @@ def main():
     elif tabs == "Information on Data":
         st.write("Information on Data")
 
-        today = date.today()
-        MIN_MAX_RANGE = (datetime(2019,1,1), datetime(2023,8,15))
-        # MIN_MAX_RANGE = (datetime.datetime(2020,1,1), today)
-        PRE_SELECTED_DATES = (datetime(2023,1,1), datetime(2023,8,1))
-        selected_min, selected_max = st.slider(
-            "Datetime slider",
-            value=PRE_SELECTED_DATES,
-            min_value=MIN_MAX_RANGE[0],
-            max_value=MIN_MAX_RANGE[1],
-        )
-        mask = (df['date'] > selected_min) & (df['date'] <= selected_max)
-        ne_df = df.loc[mask]
+        # today = date.today()
+        # MIN_MAX_RANGE = (datetime(2019,1,1), datetime(2023,8,15))
+        # # MIN_MAX_RANGE = (datetime.datetime(2020,1,1), today)
+        # PRE_SELECTED_DATES = (datetime(2023,1,1), datetime(2023,8,1))
+        # selected_min, selected_max = st.slider(
+        #     "Datetime slider",
+        #     value=PRE_SELECTED_DATES,
+        #     min_value=MIN_MAX_RANGE[0],
+        #     max_value=MIN_MAX_RANGE[1],
+        # )
+        # mask = (df['date'] > selected_min) & (df['date'] <= selected_max)
+        # ne_df = df.loc[mask]
 
-        new_df = ne_df.groupby(["source"]).size().reset_index(name='num_source')
+        new_df = df.groupby(["source"]).size().reset_index(name='num_source')
 
         # st.sidebar.title("Filters")
         # start_dt = st.sidebar.date_input('start date', datetime.date(2020,1,1))
@@ -178,48 +179,79 @@ def main():
         st.altair_chart(chart, theme="streamlit", use_container_width=True)
 
     elif tabs == "User Input":
+        embedder = SentenceTransformer('all-MiniLM-L6-v2')
+        load_dotenv()
+        connection = os.getenv("MONGODB_URI")
+        client = pymongo.MongoClient(connection)
+        db = client.get_database ('bouman_datatank')
+        col = db["articles"]
+        cursor = col.find({}).limit(1000)
+
+        # Query sentences:
+        input_client = st.text_input("Input: ")
+        query = [str(input_client)]
+
+        # Find the closest sentences of the corpus for each query sentence based on cosine similarity
+        query_embedding = embedder.encode(query, convert_to_tensor=False)
+
+        dico_list = []
         
+        # We use cosine-similarity
+        
+        for doc in cursor:
+            # st.write(doc)
+            doc_dico = {}
+            cos_score = util.cos_sim(query_embedding, doc["embedding"])[0]
+            if cos_score > 0.25:
+                doc_dico["polarity"] = doc["polarity"]
+                doc_dico["source"] = doc["source"]
+                doc_dico["language"] = doc["language"]
+                doc_dico["date"] = doc["date"]
+                doc_dico["url"] = doc["url"]
+        
+            dico_list.append(doc_dico)
 
-        test_start_date = st.date_input("Start Date")
-        start_date = datetime.combine(test_start_date, datetime.min.time())
 
-        # start_date = st.date_input("Start Date")
+        df_output = pd.DataFrame(dico_list)
+        st.write(df_output)
 
-        test_end_date = st.date_input("End Date")
-        end_date = datetime.combine(test_end_date, datetime.min.time())
+        # test_start_date = st.date_input("Start Date")
+        # start_date = datetime.combine(test_start_date, datetime.min.time())
 
-        # end_date = st.date_input("End Date")
-
-        # filtered_df = df[(df["date"] >= start_date) & (df["date"] <= end_date)]
-        mask = (df['date'] > start_date) & (df['date'] <= end_date)
-        new_df = df.loc[mask]
+        # test_end_date = st.date_input("End Date")
+        # end_date = datetime.combine(test_end_date, datetime.min.time())
 
 
-        # MIN_MAX_RANGE = (datetime.datetime(2019,1,1), datetime.datetime(2023,8,15))
-        # # MIN_MAX_RANGE = (datetime.datetime(2020,1,1), today)
-        # PRE_SELECTED_DATES = (datetime.datetime(2023,1,1), datetime.datetime(2023,8,1))
-        # selected_min, selected_max = st.slider(
-        #     "Datetime slider",
-        #     value=PRE_SELECTED_DATES,
-        #     min_value=MIN_MAX_RANGE[0],
-        #     max_value=MIN_MAX_RANGE[1],
+        # # filtered_df = df[(df["date"] >= start_date) & (df["date"] <= end_date)]
+        # mask = (df['date'] > start_date) & (df['date'] <= end_date)
+        # new_df = df.loc[mask]
+
+
+        # # MIN_MAX_RANGE = (datetime.datetime(2019,1,1), datetime.datetime(2023,8,15))
+        # # # MIN_MAX_RANGE = (datetime.datetime(2020,1,1), today)
+        # # PRE_SELECTED_DATES = (datetime.datetime(2023,1,1), datetime.datetime(2023,8,1))
+        # # selected_min, selected_max = st.slider(
+        # #     "Datetime slider",
+        # #     value=PRE_SELECTED_DATES,
+        # #     min_value=MIN_MAX_RANGE[0],
+        # #     max_value=MIN_MAX_RANGE[1],
+        # # )
+        # # mask = (df['date'] > selected_min) & (df['date'] <= selected_max)
+        # # ne_df = df.loc[mask]
+
+        # # Grouped bar chart
+        # bar_chart = alt.Chart(new_df).mark_bar().encode(
+        #     x=alt.X("source:N", title="Source"),
+        #     y=alt.Y("average(polarity):Q", title="Average Polarity"),
+        #     # color=alt.Color("source:N", legend=None),
+        #     tooltip=["source:N", "average(polarity):Q"]
+        # ).properties(
+        #     width=600,
+        #     height=400,
+        #     title="Average Polarity by Source"
         # )
-        # mask = (df['date'] > selected_min) & (df['date'] <= selected_max)
-        # ne_df = df.loc[mask]
 
-        # Grouped bar chart
-        bar_chart = alt.Chart(new_df).mark_bar().encode(
-            x=alt.X("source:N", title="Source"),
-            y=alt.Y("average(polarity):Q", title="Average Polarity"),
-            # color=alt.Color("source:N", legend=None),
-            tooltip=["source:N", "average(polarity):Q"]
-        ).properties(
-            width=600,
-            height=400,
-            title="Average Polarity by Source"
-        )
-
-        st.altair_chart(bar_chart, use_container_width=True)
+        # st.altair_chart(bar_chart, use_container_width=True)
 
 if __name__ == "__main__":
     main()
