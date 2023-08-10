@@ -4,34 +4,39 @@
 # from src.pre_proccesing import *
 # then just use your function name, **not** "src.pre_processing.myfunction()"
 # good luck
-# WE CANNOT SEND CODE THAT DOESNT WORK, THEY WONT KNOW
+# WE CANNOT SEND CODE THAT DOESNT WORK
 #
 # RUN THIS FILE WITH YOUR CODE AND CHECK THE OUTPUT
 import pymongo
 from typing import List
 
 def get_embeddings(doc: dict) -> List[List[float]]:
+    # tag = "embeddings"
     pass
-    embeddings = some_function(doc['text'])
-    return embeddings
+    return 
 
 def get_language(doc: dict) -> str:
+    # tag = "language". Expecting "fr" or "nl"
     pass
     return
 
 def get_source(doc: dict) -> str:
+    # tag = "source". Expecting "lesoir", or "rtbf", NOT "https://www.lesoir.be"
     pass
     return
 
 def get_sentiment(doc: dict) -> List[float]:
+    # tag = "sentiment"
     pass
     return
 
 def get_polarity(doc: dict) -> float:
+    # tag = "polarity" From -1.00 to +1.00.
     pass
     return
 
 def get_data_related(doc: dict) -> int:
+    # tag = "data_related". Either 1 or 0. Used as a pre-filter to simplify querying.
     pass
     return
 
@@ -45,4 +50,3 @@ if __name__=="__main__":
     doc = collection.find_one()
     # Use doc as a test
     print(doc)
-
