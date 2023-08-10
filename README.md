@@ -9,9 +9,9 @@ This project was made for DataTank in the cadre of a Becode training. It focuses
 Our data is sourced from scraping news articles from the top 20 Belgian newspapers since 2020, resulting in around 3 million data points. During preprocessing, we enriched the data with additional columns to facilitate deeper analysis.
 
 **Columns:** 
-- source_url
-- article_text
-- article_title
+- url
+- text
+- title
 - date
 - language
 - polarity
