@@ -10,7 +10,6 @@ def compute_embedding(doc):
         return [0]*384
     article = doc["text"]
     article_embedding = embedder.encode(article, convert_to_tensor=False)
-    print(type(article_embedding))
     return article_embedding
 
 
