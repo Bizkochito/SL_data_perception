@@ -7,7 +7,7 @@ tb_nl = Blobber(pos_tagger=PatternTagger(), analyzer=PatternAnalyzer())
 
 
 def compute_polarity(doc,language):
-    if "language" not in doc:
+    if language is None:
         return None
     elif language == "fr" and "text" in doc:
         polarity = tb_fr(doc["text"]).sentiment[0]

@@ -26,19 +26,27 @@ if __name__ == "__main__":
     collection = db["articles"]
     # docs = collection.find()
 
-    docs = collection.find({"embedding": {"$exists": False}})
+    # docs = collection.find({"embedding": {"$exists": False},"text": {"$exists": True, "$ne": None} })
+    docs = collection.find({"text": {"$exists": True, "$ne": None} })
     counter = 0
     for doc in docs:
+        
         counter += 1
         print(counter,doc["url"])
+        
         # Testing every function one by one
         embedding = embeddings.compute_embedding(doc)
-        #print(embedding)
+        # print(type(embedding))
+        # print(embedding.dtype)
+        # print(embedding)
         source_name = source.get_source_url(doc)
-        language = languages.language_getter(doc)
+        language = languages.language_getter(doc)        
         cos_score = embeddings.cos_score(embedding)
         data_related = embeddings.data_related(cos_score)
-        polarity_score = polarity.compute_polarity(doc,language)
+        if language is None:
+            polarity_score = None
+        else:
+            polarity_score = polarity.compute_polarity(doc,language)
 
         #print(counter, doc["url"])
         collection.update_one(
