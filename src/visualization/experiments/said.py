@@ -8,7 +8,7 @@ def random_date(start, end):
   return (start + datetime.timedelta(
       seconds=random.randint(0, int((end - start).total_seconds())))).isoformat()
 
-def create_df(language, newspaper):
+def create_df():
     headers = ["polarity", "source", "date", "title", "text", "language"]
     #200 articles
     polarities= [((random.randint(0,200)-100)/100) for x in range(200)]
@@ -20,11 +20,11 @@ def create_df(language, newspaper):
 
     df = pd.DataFrame({"polarity": polarities, "newspaper": sources, "date": dates, "language": languages})
 
-    if language != "All":
-        df = df[df['language'] == language]
+    # if language != "All":
+    #     df = df[df['language'] == language]
 
-    if newspaper and "All" not in newspaper:
-        df = df[df['newspaper'].isin(newspaper)]
+    # if newspaper and "All" not in newspaper:
+    #     df = df[df['newspaper'].isin(newspaper)]
 
     return df
 
@@ -32,10 +32,10 @@ def create_df(language, newspaper):
 st.title('DataTank Capstone Project – Sentiment Analysis')
 
 
-language = st.selectbox("Select Language", ["All", "fr", "nl"])
-newspaper = st.multiselect("Select Source", ["lesoir", "standaard", "rtbf"])
+# language = st.selectbox("Select Language", ["All", "fr", "nl"])
+# newspaper = st.multiselect("Select Source", ["lesoir", "standaard", "rtbf"])
 
-source = create_df(language,newspaper)
+source = create_df()
 
 source['date'] = pd.to_datetime(source['date'])
 source['month'] = source['date'].dt.to_period('M')
@@ -44,7 +44,7 @@ average_polarity_by_month = source.groupby('month')['polarity'].mean()
 
 chart = (
     alt.Chart(source)
-    .mark_area()
+    .mark_bar()
     .encode(
         x=alt.X('date:T', axis=alt.Axis(title='Date')),
         y='polarity',
@@ -57,7 +57,7 @@ st.altair_chart(chart, theme="streamlit", use_container_width=True)
 
 average_chart = (
     alt.Chart(average_polarity_by_month.reset_index())
-    .mark_line()
+    .mark_bar()
     .encode(
         x=alt.X('month:T', axis=alt.Axis(title='Month')),
         y=alt.Y('polarity:Q', axis=alt.Axis(title='Average Polarity')),
@@ -74,7 +74,7 @@ if show_change:
     source['polarity_change'] = source['polarity'].diff()
     change_chart = (
         alt.Chart(source)
-        .mark_area()
+        .mark_line()
         .encode(
             x="date:T",
             y='polarity_change:Q',
