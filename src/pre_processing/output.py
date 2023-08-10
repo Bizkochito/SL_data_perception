@@ -47,13 +47,14 @@ if __name__=="__main__":
     db = client["bouman_datatank"]
     collection = db["articles"]
     doc = collection.find_one()
-    doc.update({'embeddings' : get_embedding(doc)})
+    # Testing every function one by one
+
+    doc.update({'embedding' : get_embedding(doc)})
     doc.update({'source' : get_source(doc)})
     doc.update({'language' : get_language(doc)})
     doc.update({'cos_score' : get_score(doc)})
     doc.update({'data_related' : get_data_related(doc)})
     doc.update({'polarity' : get_polarity(doc)})
-
 
     for key in doc:
         print(key, ": ")
