@@ -31,6 +31,10 @@ def get_polarity(doc: dict) -> float:
     pass
     return
 
+def get_data_related(doc: dict) -> int:
+    pass
+    return
+
 if __name__=="__main__":
     # Extracting one doc out of the database so you can test your function on it.
     # please check the output, they're going to run this on 3M articles.
@@ -40,3 +44,5 @@ if __name__=="__main__":
     collection = db["articles"]
     doc = collection.find_one()
     # Use doc as a test
+    print(type(doc))
+
