@@ -2,19 +2,20 @@
 
 ![LogoX](https://github.com/Bizkochito/SL_data_perception/assets/57298106/ff7c3375-e3b1-42dc-b80f-3c2dbc30d9c4)
 
-This project is focused on analyzing sentiment around topics related to data from news articles published in Belgium. The objective is to gauge the public sentiment evolution towards data and its related topics over time using Streamlit for visualization.
-
-
 ## Database
 
-Our data is sourced from scraping news articles from the top 20 Belgian newspapers since 2020, comprising around 3 million data points.
+Our data is sourced from scraping news articles from the top 20 Belgian newspapers since 2020, resulting in around 3 million data points. During preprocessing, we enriched the data with additional columns to facilitate deeper analysis.
 
 **Columns:** 
-- url
-- source
-- text
-- title
+- source_url
+- article_text
+- article_title
 - date
+- language
+- polarity
+- embedding
+- cos_score
+- data_related
 
 **Languages:** 
 - French
@@ -29,9 +30,17 @@ Our data is sourced from scraping news articles from the top 20 Belgian newspape
 - Data privacy
 - Data protection
 
+## Analysis Details
+
+- **Language:** Identifies the language of the article, aiding in segmenting analysis by linguistic group.
+- **Polarity:** Represents the sentiment polarity of the article, which can range from very negative to very positive.
+- **Embedding:** Contains the vector representation of the article, useful for various machine learning tasks and similarity measurements.
+- **Cos_score:** Likely a measure of cosine similarity indicating how closely an article relates to a predefined vector or topic.
+- **Data_related:** A binary column indicating whether the article is related to the key data topics of interest.
+
 ## Analysis Objective
 
-Our analysis aims to answer the following:
+Our analysis aims to answer:
 - What is the overall sentiment around data and its re-use in the Belgian news sector?
 - Is the current predominant narrative regarding data more negative than positive?
 - How has this perception evolved since 2020? Is there a noticeable change before and after the pandemic?
@@ -39,7 +48,7 @@ Our analysis aims to answer the following:
 
 ## Results with Streamlit
 
-We've employed Streamlit to dynamically present the results. Streamlit offers an interactive way to visualize the findings, allowing users to sift through the data seamlessly.
+We've employed Streamlit for interactive visualization of the results, offering users an intuitive way to explore the findings.
 
 ## Team
 
