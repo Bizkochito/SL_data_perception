@@ -1,14 +1,15 @@
 # import example:
-# from src.pre_processing import output
-# or
-# from src.pre_proccesing import *
-# then just use your function name, **not** "src.pre_processing.myfunction()"
-# good luck
-# WE CANNOT SEND CODE THAT DOESNT WORK
+# import src.visualization.experiments 
+# TO TEST THE MAIN SCRIPT AT THE END OF THIS FILE,
+# RUN THIS FILE WITH :
+# python -m src.pre_processing.output
 #
-# RUN THIS FILE WITH YOUR CODE AND CHECK THE OUTPUT
+# otherwise, for some reason, imports dont work (vscode run button will not find src.)
+
 import pymongo
 from typing import List
+
+
 
 def get_embeddings(doc: dict) -> List[List[float]]:
     # tag = "embeddings"
@@ -48,5 +49,14 @@ if __name__=="__main__":
     db = client["bouman_datatank"]
     collection = db["articles"]
     doc = collection.find_one()
+    doc.update({'embeddings' : get_embeddings(doc),
+                'language' : get_language(doc),
+                'source' : get_source(doc),
+                'sentiment' : get_sentiment(doc),
+                'polarity' : get_polarity(doc),
+                'data_related' : get_data_related(doc)})
     # Use doc as a test
-    print(doc)
+    for key in doc:
+        print(key, ": ")
+        print(doc[key], '\n')
+
