@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 import datetime
 # from datetime import datetime, timedelta
 from datetime import date
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 from sentence_transformers import SentenceTransformer, util
 
@@ -65,68 +65,38 @@ def main():
 
     elif tabs == "Information on Data":
         st.write("Information on Data")
+        
+        start_date = datetime(2020,1,1)
+        # end_date = start_date + timedelta(weeks=190)
+        end_date = datetime(2023,8,10)
 
-        # today = date.today()
-        # MIN_MAX_RANGE = (datetime(2019,1,1), datetime(2023,8,15))
-        # # MIN_MAX_RANGE = (datetime.datetime(2020,1,1), today)
-        # PRE_SELECTED_DATES = (datetime(2023,1,1), datetime(2023,8,1))
-        # selected_min, selected_max = st.slider(
-        #     "Datetime slider",
-        #     value=PRE_SELECTED_DATES,
-        #     min_value=MIN_MAX_RANGE[0],
-        #     max_value=MIN_MAX_RANGE[1],
-        # )
-        # mask = (df['date'] > selected_min) & (df['date'] <= selected_max)
-        # ne_df = df.loc[mask]
+        selected_option = st.selectbox("Select Date Range Option", ["Day", "Week", "Month", "Year"])
 
-        new_df = df.groupby(["source"]).size().reset_index(name='num_source')
+        if selected_option == "Day":
+            step = timedelta(days=1)
+        elif selected_option == "Week":
+            step = timedelta(weeks=1)
+        elif selected_option == "Month":
+            step = timedelta(days=30)  # Approximate number of days in a month
+        elif selected_option == "Year":
+            step = timedelta(days=365)  # Approximate number of days in a year
 
-        # st.sidebar.title("Filters")
-        # start_dt = st.sidebar.date_input('start date', datetime.date(2020,1,1))
-        # end_dt = df.iloc[-1]["date"]
-        # # st.write(type(min_date))
-        # # st.write(type(max_date))
-        # slider = st.slider('Select date', min_value=start_dt, max_value=end_dt, format=format)
+        selected_date_range = st.slider(
+            "Select a date range",
+            min_value=start_date,
+            max_value=end_date,
+            value=(start_date, end_date),
+            step=step,
+            format="DD/MM/YYYY",
+        )
 
-        # selected_date = st.sidebar.date_input("Select a date:", min_value=min_date, max_value=max_date)
-
-        # Convert the selected_date back to a Pandas Timestamp if needed
-        # selected_date_timestamp = pd.Timestamp.fromtimestamp(selected_date)
-
-        # if selected_date:
-        #     df_resampled = df.resample("D", on="date").sum()  # Resample daily
-
-        #     # Display filtered data
-        #     st.write("Filtered Data:")
-        #     st.write(df_resampled.loc[selected_date.date()])  # Display data for selected date
-
-        # # Weekly filter
-        # weekly = st.sidebar.checkbox("Weekly")
-        # if weekly:
-        #     selected_week = st.sidebar.date_input("Select a week:", min_value=df["date"].min().date(), max_value=df["date"].max().date(), key="weekly")
-        #     df_resampled = df.resample("W-MON", on="date").sum()  # Resample weekly starting on Monday
-        #     st.write("Filtered Data:")
-        #     st.write(df_resampled.loc[selected_week])
-
-        # # Monthly filter
-        # monthly = st.sidebar.checkbox("Monthly")
-        # if monthly:
-        #     selected_month = st.sidebar.date_input("Select a month:", min_value=df["date"].min().date(), max_value=df["date"].max().date(), key="monthly")
-        #     df_resampled = df.resample("M", on="date").sum()  # Resample monthly
-        #     st.write("Filtered Data:")
-        #     st.write(df_resampled.loc[selected_month.replace(day=1):selected_month.replace(day=31)])
-
-        # # Yearly filter
-        # yearly = st.sidebar.checkbox("Yearly")
-        # if yearly:
-        #     selected_year = st.sidebar.date_input("Select a year:", min_value=df["date"].min().date(), max_value=df["date"].max().date(), key="yearly")
-        #     df_resampled = df.resample("Y", on="date").sum()  # Resample yearly
-        #     st.write("Filtered Data:")
-        #     st.write(df_resampled.loc[selected_year.replace(month=1, day=1):selected_year.replace(month=12, day=31)])
-
+        mask = (df['date'] >= selected_date_range[0]) & (df['date'] <= selected_date_range[1])
+        filtered_df = df[mask]
+      
+        source_counts = filtered_df.groupby(["source"]).size().reset_index(name='num_source')
 
         chart = (
-            alt.Chart(new_df)
+            alt.Chart(source_counts)
             .mark_bar()
             .encode(
                 x=alt.X('source', axis=alt.Axis(title='Newspapers')),
@@ -176,7 +146,7 @@ def main():
                 title='Mean Polarity by Date'
             )
 
-        st.altair_chart(chart, theme="streamlit", use_container_width=True)
+            st.altair_chart(chart, theme="streamlit", use_container_width=True)
 
     elif tabs == "User Input":
         embedder = SentenceTransformer('all-MiniLM-L6-v2')
