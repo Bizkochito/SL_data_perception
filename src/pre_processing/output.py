@@ -8,13 +8,13 @@
 
 import pymongo
 from typing import List
+from functions import *
 
 
 
 def get_embeddings(doc: dict) -> List[List[float]]:
-    # tag = "embeddings"
-    pass
-    return 
+    # tag = "embedding"
+    return get_embedding(doc) 
 
 def get_language(doc: dict) -> str:
     # tag = "language". Expecting "fr" or "nl"
@@ -36,10 +36,14 @@ def get_polarity(doc: dict) -> float:
     pass
     return
 
+def get_score(doc: dict) -> int:
+    # tag = "cos_score"
+    return cos_score(doc)
+
 def get_data_related(doc: dict) -> int:
     # tag = "data_related". Either 1 or 0. Used as a pre-filter to simplify querying.
-    pass
-    return
+    return data_related(doc)
+    
 
 if __name__=="__main__":
     # Extracting one doc out of the database so you can test your function on it.
