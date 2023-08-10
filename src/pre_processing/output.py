@@ -8,7 +8,6 @@
 
 import pymongo
 from typing import List
-
 from functions import *
 
 
@@ -16,25 +15,17 @@ def get_embeddings(doc: dict) -> List[List[float]]:
     # tag = "embedding"
     return get_embedding(doc) 
 
-def get_language(doc: dict) -> str:
-    # tag = "language". Expecting "fr" or "nl"
-    pass
-    return
-
 def get_source(doc: dict) -> str:
     # tag = "source". Expecting "lesoir", or "rtbf", NOT "https://www.lesoir.be"
-    pass
-    return
+    return get_source_url(doc)
 
-def get_sentiment(doc: dict) -> List[float]:
-    # tag = "sentiment"
-    pass
-    return
+def get_language(doc: dict) -> str:
+    # tag = "language". Expecting "fr" or "nl"
+    return language_getter(doc)
 
 def get_polarity(doc: dict) -> float:
     # tag = "polarity" From -1.00 to +1.00.
-    pass
-    return
+    return functions.get_polarity(doc)
 
 def get_score(doc: dict) -> int:
     # tag = "cos_score"
@@ -56,8 +47,8 @@ if __name__=="__main__":
     doc.update({'embeddings' : get_embeddings(doc),
                 'language' : get_language(doc),
                 'source' : get_source(doc),
-                'sentiment' : get_sentiment(doc),
                 'polarity' : get_polarity(doc),
+                'cos_score': get_score(doc),
                 'data_related' : get_data_related(doc)})
     # Use doc as a test
 
