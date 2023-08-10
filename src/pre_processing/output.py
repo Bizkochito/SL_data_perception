@@ -8,7 +8,6 @@
 #
 # RUN THIS FILE WITH YOUR CODE AND CHECK THE OUTPUT
 import pymongo
-from pymongo import MongoClient
 from typing import List
 
 def get_embeddings(doc: dict) -> List[List[float]]:
@@ -39,7 +38,7 @@ if __name__=="__main__":
     # Extracting one doc out of the database so you can test your function on it.
     # please check the output, they're going to run this on 3M articles.
 
-    client = MongoClient("mongodb://bouman:80um4N!@ec2-15-188-255-64.eu-west-3.compute.amazonaws.com:27017/")
+    client = pymongo.MongoClient("mongodb://bouman:80um4N!@ec2-15-188-255-64.eu-west-3.compute.amazonaws.com:27017/")
     db = client["bouman_datatank"]
     collection = db["articles"]
     doc = collection.find_one()
