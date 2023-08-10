@@ -3,7 +3,7 @@ import torch
 
 embedder = SentenceTransformer('all-MiniLM-L6-v2')
 
-def get_embedding(doc):
+def compute_embedding(doc):
     #tag = embedding 
     if "embedding" in doc :
         return None
@@ -20,7 +20,7 @@ def cos_score(doc):
         try :
             query = ["database OR data reusability OR data reuse OR data sharing OR data access OR data privacy OR data protection OR GDPR"]
             query_embedding = embedder.encode(query, convert_to_tensor=False)
-            cos_scores = util.cos_sim(query_embedding, doc["embdedding"])[0]
+            cos_scores = util.cos_sim(query_embedding, doc["embedding"])[0]
             return cos_scores.abs()
         except :
             return None
@@ -30,9 +30,8 @@ def data_related(doc):
     if "data_related" in doc :
         return None
     else :
-        cos_sim = doc["cos_score"]
         try:
-            if cos_sim > 0.25:
+            if doc["cos_score"] > 0.25:
                 return 1
             else :
                 return 0

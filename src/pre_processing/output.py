@@ -8,32 +8,35 @@
 
 import pymongo
 from typing import List
-from functions import *
+import src.pre_processing.functions.embeddings
+import src.pre_processing.functions.languages
+import src.pre_processing.functions.polarity
+import src.pre_processing.functions.source
 
 
-def get_embeddings(doc: dict) -> List[List[float]]:
+def get_embedding(doc: dict) -> List[List[float]]:
     # tag = "embedding"
-    return get_embedding(doc) 
+    return src.pre_processing.functions.embeddings.compute_embedding(doc) 
 
 def get_source(doc: dict) -> str:
     # tag = "source". Expecting "lesoir", or "rtbf", NOT "https://www.lesoir.be"
-    return get_source_url(doc)
+    return src.pre_processing.functions.source.get_source_url(doc)
 
 def get_language(doc: dict) -> str:
     # tag = "language". Expecting "fr" or "nl"
-    return language_getter(doc)
+    return src.pre_processing.functions.languages.language_getter(doc)
 
 def get_polarity(doc: dict) -> float:
     # tag = "polarity" From -1.00 to +1.00.
-    return functions.get_polarity(doc)
+    return src.pre_processing.functions.polarity.compute_polarity(doc)
 
 def get_score(doc: dict) -> int:
     # tag = "cos_score"
-    return cos_score(doc)
+    return src.pre_processing.functions.embeddings.cos_score(doc)
 
 def get_data_related(doc: dict) -> int:
     # tag = "data_related". Either 1 or 0. Used as a pre-filter to simplify querying.
-    return data_related(doc)
+    return src.pre_processing.functions.embeddings.data_related(doc)
     
 
 if __name__=="__main__":
@@ -44,13 +47,13 @@ if __name__=="__main__":
     db = client["bouman_datatank"]
     collection = db["articles"]
     doc = collection.find_one()
-    doc.update({'embeddings' : get_embeddings(doc),
-                'language' : get_language(doc),
-                'source' : get_source(doc),
-                'polarity' : get_polarity(doc),
-                'cos_score': get_score(doc),
-                'data_related' : get_data_related(doc)})
-    # Use doc as a test
+    doc.update({'embeddings' : get_embedding(doc)})
+    doc.update({'source' : get_source(doc)})
+    doc.update({'language' : get_language(doc)})
+    doc.update({'cos_score' : get_score(doc)})
+    doc.update({'data_related' : get_data_related(doc)})
+    doc.update({'polarity' : get_polarity(doc)})
+
 
     for key in doc:
         print(key, ": ")

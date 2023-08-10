@@ -5,7 +5,7 @@ from textblob_nl import PatternTagger, PatternAnalyzer
 tb_fr = Blobber(pos_tagger=PatternTagger(), analyzer=PatternAnalyzer())
 tb_nl = Blobber(pos_tagger=PatternTagger(), analyzer=PatternAnalyzer())
 
-def get_polarity(doc):
+def compute_polarity(doc):
     if 'language' not in doc:
         return None
     elif doc['language'] == 'fr':

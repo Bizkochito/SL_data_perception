@@ -4,6 +4,9 @@ import datetime
 import streamlit as st
 import altair as alt
 
+# Run this with
+# streamlit run src/demo.py
+
 def random_date(start, end):
   return (start + datetime.timedelta(
       seconds=random.randint(0, int((end - start).total_seconds())))).isoformat()
