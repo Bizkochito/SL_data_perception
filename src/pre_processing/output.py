@@ -11,36 +11,6 @@ from typing import List
 from src.pre_processing.functions import embeddings, languages, polarity, source
 
 
-def get_embedding(doc: dict):
-    # tag = "embedding"
-    return embeddings.compute_embedding(doc)
-
-
-def get_source(doc: dict):
-    # tag = "source". Expecting "lesoir", or "rtbf", NOT "https://www.lesoir.be"
-    return source.get_source_url(doc)
-
-
-def get_language(doc: dict):
-    # tag = "language". Expecting "fr" or "nl"
-    return languages.language_getter(doc)
-
-
-def get_polarity(doc: dict):
-    # tag = "polarity" From -1.00 to +1.00.
-    return polarity.compute_polarity(doc)
-
-
-def get_score(doc: dict):
-    # tag = "cos_score"
-    return embeddings.cos_score(doc)
-
-
-def get_data_related(doc: dict):
-    # tag = "data_related". Either 1 or 0. Used as a pre-filter to simplify querying.
-    return embeddings.data_related(doc)
-
-
 if __name__ == "__main__":
     from dotenv import load_dotenv
     import pymongo
@@ -61,17 +31,25 @@ if __name__ == "__main__":
     for doc in docs:
         counter += 1
         # Testing every function one by one
+        embedding = embeddings.compute_embedding(doc)
+        print(embedding)
+        source = source.get_source_url(doc)
+        language = languages.language_getter(doc)
+        cos_score = embeddings.cos_score(embedding)
+        data_related = embeddings.data_related(cos_score)
+        polarity = polarity.compute_polarity(doc,language)
+
         print(counter, doc["url"])
         collection.update_one(
             {"_id": doc["_id"]},
             {
                 "$set": {
-                    "embedding": get_embedding(doc),
-                    "source": get_source(doc),
-                    "language": get_language(doc),
-                    "cos_score": get_score(doc),
-                    "data_related": get_data_related(doc),
-                    "polarity": get_polarity(doc),
+                    "embedding": embedding,
+                    "source": source,
+                    "language": language,
+                    "cos_score": cos_score,
+                    "data_related": data_related,
+                    "polarity": polarity,
                 }
             },
         )
