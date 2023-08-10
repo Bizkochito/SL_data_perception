@@ -6,7 +6,7 @@
 #
 # otherwise, for some reason, imports dont work (vscode run button will not find src.)
 
-import pymongo
+
 from typing import List
 import src.pre_processing.functions.embeddings
 import src.pre_processing.functions.languages
@@ -40,10 +40,14 @@ def get_data_related(doc: dict) -> int:
     
 
 if __name__=="__main__":
+    from dotenv import load_dotenv
+    import pymongo
+    import os
     # Extracting one doc out of the database so you can test your function on it.
     # please check the output, they're going to run this on 3M articles.
-
-    client = pymongo.MongoClient("mongodb://bouman:80um4N!@ec2-15-188-255-64.eu-west-3.compute.amazonaws.com:27017/")
+    load_dotenv()
+    
+    client = pymongo.MongoClient(os.getenv("MONGODB_URI"))
     db = client["bouman_datatank"]
     collection = db["articles"]
     doc = collection.find_one()
