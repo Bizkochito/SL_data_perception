@@ -8,8 +8,8 @@
 
 import pymongo
 from typing import List
-from functions import *
 
+from functions import *
 
 
 def get_embeddings(doc: dict) -> List[List[float]]:
@@ -60,7 +60,9 @@ if __name__=="__main__":
                 'polarity' : get_polarity(doc),
                 'data_related' : get_data_related(doc)})
     # Use doc as a test
+
     for key in doc:
         print(key, ": ")
         print(doc[key], '\n')
+
 
