@@ -2,9 +2,9 @@ import streamlit as st
 import numpy as np
 import datetime
 import altair as alt
-from bokeh.plotting import figure
 import pandas as pd
 import matplotlib.pyplot as plt
+import pymongo
 
 def random_date(start, end):
     return (start + datetime.timedelta(
@@ -60,34 +60,30 @@ def media_selection():
     plt.legend()
     st.pyplot(plt)
 
-    chart = alt.Chart(filtered_data).mark_bar().encode(
-        x="yearmonth(date):O",
-        y="average(polarity):Q",
-        color="source:N"
-    ).properties(
-        width=600,
-        height=300,
-        title=f"Average Polarity for {selected_source}"
-    )
-
-    st.altair_chart(chart)
-
-
-    p = figure(
-        title='Simple Line Example',
-        x_axis_label='x',
-        y_axis_label='y')
-
-    x = [1, 2, 3, 4, 5]
-    y = [6, 7, 2, 4, 5]
-
-    p.line(x, y, legend_label='Trend', line_width=2)
-
-    st.write("## Bokeh Chart")
-    st.bokeh_chart(p, use_container_width=True)
-
 def main():
-    media_selection()
+    st.title("News Polarity Timeline")  # App title
+
+    media_selection()  # Existing media selection function
+    data = create_df()
     
+    selected_source = st.sidebar.selectbox("Select News Source", data['source'].unique())
+    filtered_df = data[data['source'] == selected_source]
+
+    # Create a column for the x-axis month
+    filtered_df['Month'] = pd.to_datetime(filtered_df['date']).dt.strftime('%B')
+
+    # Create a chart using Altair
+    chart = alt.Chart(filtered_df).mark_line().encode(
+        x='Month:N',
+        y='polarity:Q',
+        tooltip=['Month', 'polarity']
+    ).properties(
+        width=800,
+        height=400
+    ).interactive()
+
+    # Display the chart using Streamlit
+    st.altair_chart(chart)
+ 
 if __name__ == "__main__":
     main()
