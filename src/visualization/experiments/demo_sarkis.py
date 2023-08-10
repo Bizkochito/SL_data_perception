@@ -2,9 +2,9 @@ import streamlit as st
 import numpy as np
 import datetime
 import altair as alt
-from bokeh.plotting import figure
 import pandas as pd
 import matplotlib.pyplot as plt
+import pymongo
 
 def random_date(start, end):
     return (start + datetime.timedelta(
@@ -61,7 +61,29 @@ def media_selection():
     st.pyplot(plt)
 
 def main():
-    media_selection()
+    st.title("News Polarity Timeline")  # App title
+
+    media_selection()  # Existing media selection function
+    data = create_df()
     
+    selected_source = st.sidebar.selectbox("Select News Source", data['source'].unique())
+    filtered_df = data[data['source'] == selected_source]
+
+    # Create a column for the x-axis month
+    filtered_df['Month'] = pd.to_datetime(filtered_df['date']).dt.strftime('%B')
+
+    # Create a chart using Altair
+    chart = alt.Chart(filtered_df).mark_line().encode(
+        x='Month:N',
+        y='polarity:Q',
+        tooltip=['Month', 'polarity']
+    ).properties(
+        width=800,
+        height=400
+    ).interactive()
+
+    # Display the chart using Streamlit
+    st.altair_chart(chart)
+ 
 if __name__ == "__main__":
     main()
