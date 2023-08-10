@@ -72,8 +72,8 @@ def main():
 
     # Tabs for different functionalities
     tabs = st.sidebar.radio("Select Functionality", ["Data Visualization", "User Input"])
-    datasets_names = ["Data protection", "Data reuseability", "Data access"]
-    dataframes_list = [create_df(500, "Data protection"), create_df(1000, "Data reuseability"), create_df(5000, "Data access")]
+    datasets_names = ["Data Related", "Non Data Related"]
+    dataframes_list = [create_df(1000, "Data Related"), create_df(1000, "Non Data Related")]
     #indices = [x+1 for x in range(len(dataframes_list))]
 
     full_df = pd.concat(dataframes_list)
@@ -106,13 +106,13 @@ def main():
                         filtered_df = filtered_df[filtered_df["source"].isin(selected_newspaper)]
                 
 
-                use_slider = st.checkbox("Use Sentiment Slider")
-                slider_value = 1.0
-                if use_slider:
-                    slider_value = st.slider("Select a sentiment value:", min_value= -1.0, max_value=1.0, value=[-1.0, 1.0])
-                    filtered_df = filtered_df[filtered_df['polarity'].between(slider_value[-1], slider_value[1])]
+                # use_slider = st.checkbox("Use Sentiment Slider")
+                # slider_value = 1.0
+                # if use_slider:
+                #     slider_value = st.slider("Select a sentiment value:", min_value= -1.0, max_value=1.0, value=[-1.0, 1.0])
+                #     filtered_df = filtered_df[filtered_df['polarity'].between(slider_value[-1], slider_value[1])]
 
-                chart = alt.Chart(filtered_df).mark_line().encode(
+                chart = alt.Chart(filtered_df).mark_bar().encode(
                     x=alt.X('month:O', title='Month'),
                     y=alt.Y('mean(polarity):Q', title='Mean Polarity'),
                     tooltip=['month:O', 'mean(polarity):Q'],
