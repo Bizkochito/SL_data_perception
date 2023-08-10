@@ -26,11 +26,6 @@ def get_source(doc: dict) -> str:
     pass
     return
 
-def get_sentiment(doc: dict) -> List[float]:
-    # tag = "sentiment"
-    pass
-    return
-
 def get_polarity(doc: dict) -> float:
     # tag = "polarity" From -1.00 to +1.00.
     pass
