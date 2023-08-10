@@ -9,10 +9,10 @@
 # RUN THIS FILE WITH YOUR CODE AND CHECK THE OUTPUT
 import pymongo
 from typing import List
+from functions import *
 
 def get_embeddings(doc: dict) -> List[List[float]]:
-    pass
-    return 
+    return get_embedding(doc) 
 
 def get_language(doc: dict) -> str:
     pass
@@ -30,9 +30,11 @@ def get_polarity(doc: dict) -> float:
     pass
     return
 
+def get_score(doc: dict) -> int:
+    return cos_score(doc)
+
 def get_data_related(doc: dict) -> int:
-    pass
-    return
+    return data_related(doc)
 
 if __name__=="__main__":
     # Extracting one doc out of the database so you can test your function on it.
