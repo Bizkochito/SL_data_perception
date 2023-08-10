@@ -1,5 +1,7 @@
 # Belgian Newspaper Articles Sentiment Analysis on Data Related Topics
 
+This project was made for DataTank in the cadre of a Becode training. It focuses on analyzing sentiment around topics related to data from news articles published in Belgium. Using Streamlit for visualization, the objective is to gauge the evolution of public sentiment towards data and related topics over time.
+
 ![LogoX](https://github.com/Bizkochito/SL_data_perception/assets/57298106/ff7c3375-e3b1-42dc-b80f-3c2dbc30d9c4)
 
 ## Database
