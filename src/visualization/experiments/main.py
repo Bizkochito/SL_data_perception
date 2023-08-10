@@ -3,6 +3,10 @@ import pandas as pd
 import streamlit as st
 import altair as alt
 from PIL import Image
+import re
+import os
+from dotenv import load_dotenv
+
 
 all_sources = ['rtbf.be', 'lesoir.be', 'dhnet.be', 'lalibre.be', 'sudinfo.be', 
 'levif.be', 'lavenir.net', 'lecho.be', 'tijd.be', 
@@ -13,15 +17,26 @@ fr_sources =  ['rtbf.be', 'lesoir.be', 'dhnet.be', 'lalibre.be', 'sudinfo.be', '
 nl_sources =  ['tijd.be', 'demorgen.be', 'vrt.be', 'hln.be', 'knack.be']
 
 def get_articles(articles_limit):
-    connection = "mongodb://bouman:80um4N!@ec2-15-188-255-64.eu-west-3.compute.amazonaws.com:27017/"
+    load_dotenv()
+    connection = os.getenv("MONGODB_URI")
     client = pymongo.MongoClient(connection)
     db = client.get_database ('bouman_datatank')
     col = db["articles"]
     news = col.find().limit(articles_limit)
-    # df = pd.DataFrame(data=news)
     return news
 
+news = get_articles(10)
+df = pd.DataFrame(data=news)
 
+df['newspaper'] = df['url'].map(lambda x: re.search(r'://(?:www\.)?([a-zA-Z0-9.-]+)', str(x)).group(1))
+def get_language(newspaper):
+    if newspaper in fr_sources:
+        return "fr"
+    elif newspaper in nl_sources:
+        return "nl"
+    else:
+        "unknown"
+df['language'] = df['newspaper'].apply(get_language)
 
 
 def main():
@@ -54,20 +69,74 @@ def main():
 
 
     elif tabs == "Information on Data":
-        st.write(df.head(10))
+        st.write("Information on Data")
     #     st.write("")
-    #     chart = (
-    #         alt.Chart(df)
-    #         .mark_circle()
-    #         .encode(
-    #             x="date",
-    #             y='avg_polarity',
-    #             color='newspaper'
-    #         )
-    #         .interactive()
-    #     )
+        chart = (
+            alt.Chart(df)
+            .mark_circle()
+            .encode(
+                x="date",
+                y='avg_polarity',
+                color='newspaper'
+            )
+            .interactive()
+        )
+    elif tabs == "Sentiment Analysis":
+        
+        # Upload CSV files
+        # uploaded_files = True #st.file_uploader("Upload CSV files", type="csv", accept_multiple_files=True)
+        # if uploaded_files:
+            # Checkbox to select dataframes
+        # selected_dataframes = st.multiselect("Select Dataframes to Display", datasets_names, [datasets_names[0]])
+        # if selected_dataframes:
+            # filtered_df = full_df[full_df['dataset'].isin(selected_dataframes)]
+        filtered_df = df
+        selected_language = st.selectbox("Select Language", ["All", "fr", "nl"])
+        if selected_language != "All":
+            filtered_df = filtered_df[filtered_df['language'] == selected_language]
+            if selected_language == "fr":
+                default_selection = fr_sources
+                selected_newspaper = st.multiselect("Select Newspaper(s) to Display", fr_sources)
+                if selected_newspaper:
+                    filtered_df = filtered_df[filtered_df["newspaper"].isin(selected_newspaper)]
+            elif selected_language == "nl":
+                default_selection = nl_sources
+                selected_newspaper = st.multiselect("Select Newspaper(s) to Display", nl_sources)
+                if selected_newspaper:
+                    filtered_df = filtered_df[filtered_df["newspaper"].isin(selected_newspaper)]
+        else:
+            default_selection = all_sources
+            selected_newspaper = st.multiselect("Select Newspaper(s) to Display", all_sources)
+            if selected_newspaper:
+                filtered_df = filtered_df[filtered_df["newspaper"].isin(selected_newspaper)]
+        
 
-    #     st.altair_chart(chart, theme="streamlit", use_container_width=True)
+            # use_slider = st.checkbox("Use Sentiment Slider")
+            # slider_value = 1.0
+            # if use_slider:
+            #     slider_value = st.slider("Select a sentiment value:", min_value= -1.0, max_value=1.0, value=[-1.0, 1.0])
+            #     filtered_df = filtered_df[filtered_df['polarity'].between(slider_value[-1], slider_value[1])]
+
+            # chart = alt.Chart(filtered_df).mark_line().encode(
+            #     x=alt.X('month:O', title='Month'),
+            #     y=alt.Y('mean(polarity):Q', title='Mean Polarity'),
+            #     tooltip=['month:O', 'mean(polarity):Q'],
+            #     color=alt.Color("dataset:N", legend=alt.Legend(title="Topics"))
+            # ).properties(
+            #     width=800,
+            #     height=400,
+            #     title='Mean Polarity by Month'
+            # )
+            chart = (
+            alt.Chart(df)
+            .mark_circle()
+            .encode(
+                x= 'date',
+                y='polarity',
+            )
+            .interactive()
+        )
+        # st.altair_chart(chart, theme="streamlit", use_container_width=True)
 
 if __name__ == "__main__":
     main()
