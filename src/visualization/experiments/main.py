@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 import pytz
 from sentence_transformers import SentenceTransformer, util
 
-def get_articles(articles_limit=2000):
+def get_articles(articles_limit=5000):
     load_dotenv()
     connection = os.getenv("MONGODB_URI")
     client = pymongo.MongoClient(connection)
@@ -28,8 +28,8 @@ df = pd.DataFrame(data=news)
 df = df[df["date"].notna()]
 df["date"] = pd.to_datetime(df["date"], errors="coerce")
 df = df.sort_values(by="date")
-min_date = df["date"].iloc[0]
-max_date = df["date"].iloc[-1]
+# min_date = pd.to_datetime(df["date"].iloc[0])
+# max_date = pd.to_datetime(df["date"].iloc[-1])
 
 df['month'] = df["date"].dt.to_period("M")
 monthly_avg = df.groupby('month')['polarity'].mean()
@@ -42,7 +42,7 @@ nl_sources =  [i for i in df[df["language"]=="nl"]["source"].unique()]
 def main():
     st.write("# Capstone Project")
     st.sidebar.write("Capstone Project")
-    tabs = st.sidebar.radio("Select Functionality", ["Project Overview","Information on Data","Sentiment Analysis", "User Input", "Test", "Test2"])
+    tabs = st.sidebar.radio("Select Functionality", ["Project Overview","Information on Data","Sentiment Analysis", "User Input"])
     if tabs == "Project Overview":
         st.write("## Belgian Newspaper Articles Sentiment Analysis on Data Related Topics \n ### Project Overview \n Welcome to the Capstone Project, a collaboration between ***becode.org*** and ***the Data Tank***. Our project aims to delve into the fascinating world of public sentiment towards data and related topics in Belgium. By analyzing a vast collection of newspaper articles, we seek to gain valuable insights into how this sentiment has evolved over the years. ")
         st.write("### Collaborators")
@@ -68,10 +68,9 @@ def main():
 
 
     elif tabs == "Information on Data":
-        st.write("Information on Data")
+        st.write("## Information on Data")
         
         start_date = datetime(2020,1,1)
-        # end_date = start_date + timedelta(weeks=190)
         end_date = datetime(2023,8,10)
 
         selected_option = st.selectbox("Select Date Range Option", ["Day", "Week", "Month", "Year"])
@@ -98,6 +97,10 @@ def main():
         filtered_df = df[mask]
       
         source_counts = filtered_df.groupby(["source"]).size().reset_index(name='num_source')
+        source_counts_sorted = filtered_df.groupby(["source"]).size().reset_index(name='num_source').sort_values("num_source",ascending=False)
+        
+        st.write("### Number of Articles per Newspaper")
+        st.dataframe(data=source_counts_sorted,hide_index=True)
 
         chart = (
             alt.Chart(source_counts)
@@ -105,7 +108,7 @@ def main():
             .encode(
                 x=alt.X('source', axis=alt.Axis(title='Newspapers')),
                 y=alt.Y('num_source', axis=alt.Axis(title='Articles Number')),
-                # color='language',
+                color='source',
             )
             .interactive()
         )
@@ -113,7 +116,6 @@ def main():
 
     elif tabs == "Sentiment Analysis":
         start_date = datetime(2020,1,1)
-        # end_date = start_date + timedelta(weeks=190)
         end_date = datetime(2023,8,10)
 
         selected_option = st.selectbox("Select Date Range Option", ["Day", "Week", "Month", "Year"])
@@ -158,28 +160,32 @@ def main():
                 selected_newspaper = st.multiselect("Select Newspaper(s) to Display", nl_sources, default=default_selection)
                 filtered_df = df[df["source"].isin(selected_newspaper)]
                 return filtered_df
-            elif selected_language == "All":
+            elif selected_language not in ["French","Dutch"]:
                 default_selection = all_sources
                 selected_newspaper = st.multiselect("Select Newspaper(s) to Display", all_sources, default=default_selection)
                 filtered_df = df[df["source"].isin(selected_newspaper)]
                 return filtered_df
-            else:
-                default_selection = all_sources
-                selected_newspaper = st.multiselect("Select Newspaper(s) to Display", all_sources,default=default_selection)
-                filtered_df = df[df["source"].isin(selected_newspaper)]
-                return filtered_df
+            # else:
+            #     default_selection = all_sources
+            #     selected_newspaper = st.multiselect("Select Newspaper(s) to Display", all_sources,default=default_selection)
+            #     filtered_df = df[df["source"].isin(selected_newspaper)]
+            #     return filtered_df
         
         filtered_df = get_filtered_df(test_df)
 
-            # use_slider = st.checkbox("Use Sentiment Slider")
-            # slider_value = 1.0
-            # if use_slider:
-            #     slider_value = st.slider("Select a sentiment value:", min_value= -1.0, max_value=1.0, value=[-1.0, 1.0])
-            #     filtered_df = filtered_df[filtered_df['polarity'].between(slider_value[-1], slider_value[1])]
+        use_slider = st.checkbox("Use Sentiment Slider")
+        if use_slider:
+            selected_polarity_range = st.slider(
+            "Select a polarity range",
+            min_value=-1.0,
+            max_value=1.0,
+            value=(-1.0, 1.0))
+            mask = (df['polarity'] >= selected_polarity_range[0]) & (df['polarity'] <= selected_polarity_range[1])
+            filtered_df = filtered_df[mask]
 
         chart = alt.Chart(filtered_df).mark_bar().encode(
             x=alt.X('date', title='Date'),
-            y=alt.Y('mean(polarity):Q', title='Mean Polarity'),
+            y=alt.Y('mean(polarity):Q', title='Polarity Score'),
             # tooltip=['month:O', 'mean(polarity):Q'],
             # color=alt.Color("dataset:N", legend=alt.Legend(title="Topics"))
         ).properties(
@@ -188,7 +194,7 @@ def main():
             title='Mean Polarity by Date'
         ).interactive()
 
-            st.altair_chart(chart, theme="streamlit", use_container_width=True)
+        st.altair_chart(chart, theme="streamlit", use_container_width=True)
 
     elif tabs == "User Input":
         st.write("This interface serves as your access point to a carefully curated collection of articles designed to align with your interests. To begin, kindly provide us with either specific keywords or a concise prompt. Our advanced algorithm will then diligently select a range of relevant articles from our comprehensive database.")
@@ -221,93 +227,6 @@ def main():
 
         df_output = pd.DataFrame(dico_list)
         st.dataframe(data=df_output,hide_index=True)
-
-    elif tabs == "Test":
-
-        test_start_date = st.date_input("Start Date")
-        start_date = datetime.combine(test_start_date, datetime.min.time())
-
-        test_end_date = st.date_input("End Date")
-        end_date = datetime.combine(test_end_date, datetime.min.time())
-
-
-        # filtered_df = df[(df["date"] >= start_date) & (df["date"] <= end_date)]
-        mask = (df['date'] > start_date) & (df['date'] <= end_date)
-        new_df = df.loc[mask]
-
-
-        # MIN_MAX_RANGE = (datetime.datetime(2019,1,1), datetime.datetime(2023,8,15))
-        # # MIN_MAX_RANGE = (datetime.datetime(2020,1,1), today)
-        # PRE_SELECTED_DATES = (datetime.datetime(2023,1,1), datetime.datetime(2023,8,1))
-        # selected_min, selected_max = st.slider(
-        #     "Datetime slider",
-        #     value=PRE_SELECTED_DATES,
-        #     min_value=MIN_MAX_RANGE[0],
-        #     max_value=MIN_MAX_RANGE[1],
-        # )
-        # mask = (df['date'] > selected_min) & (df['date'] <= selected_max)
-        # ne_df = df.loc[mask]
-
-        # Grouped bar chart
-        bar_chart = alt.Chart(new_df).mark_bar().encode(
-            x=alt.X("source:N", title="Source"),
-            y=alt.Y("average(polarity):Q", title="Average Polarity"),
-            # color=alt.Color("source:N", legend=None),
-            tooltip=["source:N", "average(polarity):Q"]
-        ).properties(
-            width=600,
-            height=400,
-            title="Average Polarity by Source"
-        )
-
-        st.altair_chart(bar_chart, use_container_width=True)
-
-    elif tabs == "Test2":
-
-        # test_start_date = st.date_input("Start Date")
-        # start_date = datetime.combine(test_start_date, datetime.min.time())
-
-        # test_end_date = st.date_input("End Date")
-        # end_date = datetime.combine(test_end_date, datetime.min.time())
-
-
-        # # filtered_df = df[(df["date"] >= start_date) & (df["date"] <= end_date)]
-        # mask = (df['date'] > start_date) & (df['date'] <= end_date)
-        # new_df = df.loc[mask]
-
-
-        # MIN_MAX_RANGE = (datetime.combine(test_start_date, datetime.min.time()), datetime.datetime(2023,8,15))
-        # # MIN_MAX_RANGE = (datetime.datetime(2020,1,1), today)
-        # PRE_SELECTED_DATES = (datetime.datetime(2023,1,1), datetime.datetime(2023,8,1))
-        # selected_min, selected_max = st.slider(
-        #     "Datetime slider",
-        #     value=PRE_SELECTED_DATES,
-        #     min_value=MIN_MAX_RANGE[0],
-        #     max_value=MIN_MAX_RANGE[1],
-        # )
-        # mask = (df['date'] > selected_min) & (df['date'] <= selected_max)
-        # ne_df = df.loc[mask]
-
-        monthly = st.sidebar.checkbox("Monthly")
-        if monthly:
-            selected_month = st.sidebar.date_input("Select a month:", min_value=min_date, max_value=max_date, key="monthly")
-            df_resampled = df.resample("M", on="date").agg()  # Resample monthly
-            st.write("Filtered Data:")
-            st.write(df_resampled.loc[selected_month.replace(day=1):selected_month.replace(day=31)])
-
-
-            chart = alt.Chart(df_resampled).mark_bar().encode(
-                    x=alt.X('month', title='Date'),
-                    y=alt.Y('mean(polarity):Q', title='Mean Polarity'),
-                    tooltip=['date', 'mean(polarity):Q'],
-                    # color=alt.Color("dataset:N", legend=alt.Legend(title="Topics"))
-                ).properties(
-                    width=800,
-                    height=400,
-                    title='Mean Polarity by Date'
-                )
-
-            st.altair_chart(chart, theme="streamlit", use_container_width=True)
 
 if __name__ == "__main__":
     main()
