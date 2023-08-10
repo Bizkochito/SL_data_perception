@@ -3,6 +3,5 @@ def get_source_url(doc):
     source = url.split(".")[1]
     if "source" in doc:
         return None
-    else :
-        return source 
-
+    else:
+        return source
