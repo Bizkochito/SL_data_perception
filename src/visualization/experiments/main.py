@@ -7,16 +7,19 @@ import re
 import os
 from dotenv import load_dotenv
 
+from datetime import datetime, timedelta
+import pytz
+
 
 all_sources = ['rtbf.be', 'lesoir.be', 'dhnet.be', 'lalibre.be', 'sudinfo.be', 
 'levif.be', 'lavenir.net', 'lecho.be', 'tijd.be', 
 'demorgen.be', 'vrt.be', 'hln.be','knack.be']
 
 fr_sources =  ['rtbf.be', 'lesoir.be', 'dhnet.be', 'lalibre.be', 'sudinfo.be', 'levif.be', 
-'lavenir.net', 'lecho.be']
+'lavenir.net', 'lecho.be','datanews.levif.be','plus.lesoir.be']
 nl_sources =  ['tijd.be', 'demorgen.be', 'vrt.be', 'hln.be', 'knack.be']
 
-def get_articles(articles_limit):
+def get_articles(articles_limit=1000):
     load_dotenv()
     connection = os.getenv("MONGODB_URI")
     client = pymongo.MongoClient(connection)
@@ -25,10 +28,10 @@ def get_articles(articles_limit):
     news = col.find().limit(articles_limit)
     return news
 
-news = get_articles(10)
+news = get_articles()
 df = pd.DataFrame(data=news)
 
-df['newspaper'] = df['url'].map(lambda x: re.search(r'://(?:www\.)?([a-zA-Z0-9.-]+)', str(x)).group(1))
+df['source'] = df['url'].map(lambda x: re.search(r'://(?:www\.)?([a-zA-Z0-9.-]+)', str(x)).group(1))
 def get_language(newspaper):
     if newspaper in fr_sources:
         return "fr"
@@ -36,14 +39,14 @@ def get_language(newspaper):
         return "nl"
     else:
         "unknown"
-df['language'] = df['newspaper'].apply(get_language)
-
+df['language'] = df['source'].apply(get_language)
+# df["date"] = pd.to_datetime(df["date"])
+print(df["date"].min())
 
 def main():
     st.write("# BeCode Capstone Project \n  Belgian Newspaper Articles Sentiment Analysis on Data Related Topics ")
     st.sidebar.write("BeCode Capstone Project ")
     tabs = st.sidebar.radio("Select Functionality", ["Project Overview","Information on Data","Sentiment Analysis", "User Input"])
-    
     if tabs == "Project Overview":
         st.write("### Project Overview \n Welcome to the BeCode Capstone Project, a collaboration between ***becode.org*** and ***the Data Tank***. Our project aims to delve into the fascinating world of public sentiment towards data and related topics in Belgium. By analyzing a vast collection of newspaper articles, we seek to gain valuable insights into how this sentiment has evolved over the years. ")
         st.write("### Collaborators")
@@ -70,17 +73,59 @@ def main():
 
     elif tabs == "Information on Data":
         st.write("Information on Data")
-    #     st.write("")
+        st.write(df.head(10))
+        # new_df = df.groupby(["source"]).size().reset_index(name='num_source')
+
+        new_df = df
+        e = df.groupby(["source"]).size().reset_index(name='num_source')
+
+        st.sidebar.title("Filters")
+        selected_date = st.sidebar.date_input("Select a date:", min_value=df["date"].min(), max_value=df["date"].max())
+
+        if selected_date:
+            df_resampled = df.resample("D", on="date").sum()  # Resample daily
+
+            # Display filtered data
+            st.write("Filtered Data:")
+            st.write(df_resampled.loc[selected_date.date()])  # Display data for selected date
+
+        # Weekly filter
+        weekly = st.sidebar.checkbox("Weekly")
+        if weekly:
+            selected_week = st.sidebar.date_input("Select a week:", min_value=df["date"].min().date(), max_value=df["date"].max().date(), key="weekly")
+            df_resampled = df.resample("W-MON", on="date").sum()  # Resample weekly starting on Monday
+            st.write("Filtered Data:")
+            st.write(df_resampled.loc[selected_week])
+
+        # Monthly filter
+        monthly = st.sidebar.checkbox("Monthly")
+        if monthly:
+            selected_month = st.sidebar.date_input("Select a month:", min_value=df["date"].min().date(), max_value=df["date"].max().date(), key="monthly")
+            df_resampled = df.resample("M", on="date").sum()  # Resample monthly
+            st.write("Filtered Data:")
+            st.write(df_resampled.loc[selected_month.replace(day=1):selected_month.replace(day=31)])
+
+        # Yearly filter
+        yearly = st.sidebar.checkbox("Yearly")
+        if yearly:
+            selected_year = st.sidebar.date_input("Select a year:", min_value=df["date"].min().date(), max_value=df["date"].max().date(), key="yearly")
+            df_resampled = df.resample("Y", on="date").sum()  # Resample yearly
+            st.write("Filtered Data:")
+            st.write(df_resampled.loc[selected_year.replace(month=1, day=1):selected_year.replace(month=12, day=31)])
+
+
         chart = (
-            alt.Chart(df)
-            .mark_circle()
+            alt.Chart(new_df)
+            .mark_bar()
             .encode(
-                x="date",
-                y='avg_polarity',
-                color='newspaper'
+                x=alt.X('source', axis=alt.Axis(title='Newspapers')),
+                y=alt.Y('num_source', axis=alt.Axis(title='Articles Number')),
+                # color='language',
             )
             .interactive()
         )
+        st.altair_chart(chart, theme="streamlit", use_container_width=True)
+
     elif tabs == "Sentiment Analysis":
         
         # Upload CSV files
@@ -131,7 +176,7 @@ def main():
             alt.Chart(df)
             .mark_circle()
             .encode(
-                x= 'date',
+                x='date',
                 y='polarity',
             )
             .interactive()
