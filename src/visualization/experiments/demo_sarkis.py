@@ -60,32 +60,6 @@ def media_selection():
     plt.legend()
     st.pyplot(plt)
 
-    chart = alt.Chart(filtered_data).mark_bar().encode(
-        x="yearmonth(date):O",
-        y="average(polarity):Q",
-        color="source:N"
-    ).properties(
-        width=600,
-        height=300,
-        title=f"Average Polarity for {selected_source}"
-    )
-
-    st.altair_chart(chart)
-
-
-    p = figure(
-        title='Simple Line Example',
-        x_axis_label='x',
-        y_axis_label='y')
-
-    x = [1, 2, 3, 4, 5]
-    y = [6, 7, 2, 4, 5]
-
-    p.line(x, y, legend_label='Trend', line_width=2)
-
-    st.write("## Bokeh Chart")
-    st.bokeh_chart(p, use_container_width=True)
-
 def main():
     media_selection()
     
