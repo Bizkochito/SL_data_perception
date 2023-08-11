@@ -109,19 +109,26 @@ Using [Streamlit](https://streamlit.io/), we've developed an interactive dashboa
 The teams are comprised of [Becode](https://becode.org/) trainees from the AI & Data Bootcamp training.
 
 **Analytics Team:**
-- Member 1
-- Member 2
-- Member 3
-- Member 4
-- Member 5
+- [Ramina Chamileva](https://github.com/RamiRambo)
+- [Yuliia Dranishcheva](https://github.com/Yuliia1701)
+- [Mourad Amjahed](https://github.com/Mourad-Amj)
+- [Sarkis Tadevosian](https://github.com/Ta-DevSark)
+- [Grégoire Hupin](https://github.com/Bizkochito)
+- [Maciej Krasowski](https://github.com/maciejkrsk)
+- [Natalia Evgrafova](https://github.com/natalievgrafova)
+- [Said Kardic](https://github.com/SaidKardic)
+- [Marco](https://github.com/marcomisco)
+- [Melikke Kaya](https://github.com/Melikkekaya)
+- [Dastan Mirzayev](https://github.com/Dastan312)
 
 **Engineering Team:**
-- Member 1
-- Member 2
-- Member 3
-- Member 4
-- Member 5
-
+- [Melih Orhan Yilmaz](https://github.com/melihorhanyilmaz)
+- [Paul Strazzulla](https://github.com/Ptiful)
+- [Mahmoud Hasan](https://github.com/MahmoudHasan83)
+- [Sivasankari Subramani](https://github.com/ChristosRaptis)
+- [Shankari Siva](https://github.com/sivasankari-subramani)
+- [Volodymyr Savchuk](https://github.com/svstm)
+    
 ## Technologies Used
 
 - [Python 3.11](https://www.python.org/)
