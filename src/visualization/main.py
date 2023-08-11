@@ -13,6 +13,8 @@ from datetime import datetime, timedelta
 import pytz
 from sentence_transformers import SentenceTransformer, util
 
+st.set_page_config(layout="wide")
+
 def get_articles(articles_limit=5000):
     load_dotenv()
     connection = os.getenv("MONGODB_URI")
@@ -27,21 +29,21 @@ df = pd.DataFrame(data=news)
 
 df = df[df["date"].notna()]
 df["date"] = pd.to_datetime(df["date"], errors="coerce")
-df = df.sort_values(by="date")
+# df = df.sort_values(by="date")
 # min_date = pd.to_datetime(df["date"].iloc[0])
 # max_date = pd.to_datetime(df["date"].iloc[-1])
 
-df['month'] = df["date"].dt.to_period("M")
-monthly_avg = df.groupby('month')['polarity'].mean()
-df['avg_polarity'] = df['month'].map(monthly_avg)
+# df['month'] = df["date"].dt.to_period("M")
+# monthly_avg = df.groupby('month')['polarity'].mean()
+# df['avg_polarity'] = df['month'].map(monthly_avg)
 
 all_sources = [i for i in df["source"].unique()]
 fr_sources =  [i for i in df[df["language"]=="fr"]["source"].unique()]
 nl_sources =  [i for i in df[df["language"]=="nl"]["source"].unique()]
 
 def main():
-    st.write("# Capstone Project")
-    st.sidebar.write("Capstone Project")
+    st.write("# Data Tank")
+    st.sidebar.write("Data Tank Sentiment Analysis")
     tabs = st.sidebar.radio("Select Functionality", ["Project Overview","Information on Data","Sentiment Analysis", "User Input"])
     if tabs == "Project Overview":
         st.write("## Belgian Newspaper Articles Sentiment Analysis on Data Related Topics \n ### Project Overview \n Welcome to the Capstone Project, a collaboration between ***becode.org*** and ***the Data Tank***. Our project aims to delve into the fascinating world of public sentiment towards data and related topics in Belgium. By analyzing a vast collection of newspaper articles, we seek to gain valuable insights into how this sentiment has evolved over the years. ")
@@ -96,19 +98,31 @@ def main():
         mask = (df['date'] >= selected_date_range[0]) & (df['date'] <= selected_date_range[1])
         filtered_df = df[mask]
       
-        source_counts = filtered_df.groupby(["source"]).size().reset_index(name='num_source')
-        source_counts_sorted = filtered_df.groupby(["source"]).size().reset_index(name='num_source').sort_values("num_source",ascending=False)
-        
+        # source_counts = filtered_df.groupby(["source"]).size().reset_index(name='num_source')
+        # source_counts_sorted = filtered_df.groupby(["source"]).size().reset_index(name='num_source').sort_values("num_source",ascending=False)
+
+        # chart = (
+        #     alt.Chart(source_counts)
+        #     .mark_bar()
+        #     .encode(
+        #         x=alt.X('source', axis=alt.Axis(title='Newspapers')),
+        #         y=alt.Y('num_source', axis=alt.Axis(title='Articles Number')),
+        #         # color='language',
+        #     )
+        #     .interactive()
+        # )
+        # st.altair_chart(chart, theme="streamlit", use_container_width=True)
+
         st.write("### Number of Articles per Newspaper")
-        st.dataframe(data=source_counts_sorted,hide_index=True)
+        # st.dataframe(data=source_counts_sorted,hide_index=True)
 
         chart = (
-            alt.Chart(source_counts)
+            alt.Chart(filtered_df)
             .mark_bar()
             .encode(
-                x=alt.X('source', axis=alt.Axis(title='Newspapers')),
-                y=alt.Y('num_source', axis=alt.Axis(title='Articles Number')),
-                color='source',
+                x=alt.X('source:N', axis=alt.Axis(title='Newspapers')),
+                y=alt.Y('count(source):Q', axis=alt.Axis(title='Articles Number')),
+                # color='source',
             )
             .interactive()
         )
@@ -204,7 +218,7 @@ def main():
         client = pymongo.MongoClient(connection)
         db = client.get_database ('bouman_datatank')
         col = db["articles"]
-        cursor = col.find({}).limit(1000)
+        cursor = col.find({"embedding":{"$exists":True}})
 
         input_client = st.text_input("Topic of articles to display : ")
         query = [str(input_client)]
