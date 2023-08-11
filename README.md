@@ -125,8 +125,8 @@ The teams are comprised of [Becode](https://becode.org/) trainees from the AI & 
 - [Melih Orhan Yilmaz](https://github.com/melihorhanyilmaz)
 - [Paul Strazzulla](https://github.com/Ptiful)
 - [Mahmoud Hasan](https://github.com/MahmoudHasan83)
-- [Sivasankari Subramani](https://github.com/ChristosRaptis)
-- [Shankari Siva](https://github.com/sivasankari-subramani)
+- [Christos Raptis](https://github.com/ChristosRaptis)
+- [Sivasankari Subramani](https://github.com/sivasankari-subramani)
 - [Volodymyr Savchuk](https://github.com/svstm)
     
 ## Technologies Used
