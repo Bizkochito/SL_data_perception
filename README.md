@@ -91,18 +91,22 @@ Using [Streamlit](https://streamlit.io/), we've developed an interactive dashboa
     - Introduces the objective of our project, emphasizing the importance of understanding public sentiment in today's data-driven era.
     - Highlights the expected impact and how our findings can benefit various stakeholders.
     - Provides contact information for further inquiries.
+    ![image](https://github.com/Bizkochito/SL_data_perception/blob/main/src/visualization/images/data_tank_ss/8.png)
 
 2. **Information on Data Tab**: 
     - Offers insights into our dataset, including the source, columns, languages, and the key topics we focused on.
+    ![image](https://github.com/Bizkochito/SL_data_perception/blob/main/src/visualization/images/data_tank_ss/5.png)
 
 3. **Sentiment Analysis Tab**: 
     - Displays comprehensive visualizations of sentiment trends derived from the data.
     - Allows users to filter and drill down into specific timeframes, topics, or sources to gain a deeper understanding of the sentiment patterns.
-    - 
+    ![image](https://github.com/Bizkochito/SL_data_perception/blob/main/src/visualization/images/data_tank_ss/9.png)
+
 4. **User Input Tab**: 
     - Empowers users to input specific prompts or keywords.
     - Using semantic search, the system fetches articles that are contextually related to the provided input, ensuring relevant and meaningful results.
     - Presents both the articles themselves and sentiment visualizations based on the semantically retrieved articles for the inputted prompt.
+    ![image](https://github.com/Bizkochito/SL_data_perception/blob/main/src/visualization/images/data_tank_ss/1.png)
 
 ## Teams
 
@@ -118,7 +122,7 @@ The teams are comprised of [Becode](https://becode.org/) trainees from the AI & 
 - [Natalia Evgrafova](https://github.com/natalievgrafova)
 - [Said Kardic](https://github.com/SaidKardic)
 - [Marco Bove](https://github.com/marcomisco)
-- [Melikke Kaya](https://github.com/Melikkekaya)
+- [Melike Kaya](https://github.com/melikkekaya)
 - [Dastan Mirzayev](https://github.com/Dastan312)
 
 **Engineering Team:**

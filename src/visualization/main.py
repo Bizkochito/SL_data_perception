@@ -41,7 +41,7 @@ def get_articles(limit):
     return df
 
 start = datetime.datetime.now()
-df = get_articles(1000)
+df = get_articles(20000)
 print (datetime.datetime.now()-start)
 
 print("loaded","*"*50)
