@@ -7,39 +7,73 @@ import re
 import os
 from dotenv import load_dotenv
 import datetime
-from datetime import timedelta
-from datetime import date
-from datetime import datetime, timedelta
 import pytz
 from sentence_transformers import SentenceTransformer, util
 
-st.set_page_config(layout="wide")
-
-def get_articles(articles_limit=5000):
+@st.cache_resource
+def get_articles(limit):
     load_dotenv()
     connection = os.getenv("MONGODB_URI")
     client = pymongo.MongoClient(connection)
     db = client.get_database ('bouman_datatank')
     col = db["articles"]
-    news = col.find().limit(articles_limit)
-    return news
+    news = col.find(
+        {
+    "source": {
+    "$exists": True,
+    "$ne": None
+    }}
+    ).limit(limit)
+    start = datetime.datetime.now()
+    df = pd.DataFrame(data=news)
+    df = df.drop("article", axis=1)
+    df = df.dropna()
+    print (datetime.datetime.now()-start)
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    df = df[df["date"].notna()]
+    df["date"] = df["date"].apply(lambda dt: dt if dt.tzinfo else dt.replace(tzinfo=datetime.timezone.utc)).dt.date
+    df = df.sort_values(by="date")
+    return df
 
-news = get_articles()
-df = pd.DataFrame(data=news)
+start = datetime.datetime.now()
+df = get_articles(100000)
+print (datetime.datetime.now()-start)
 
-df = df[df["date"].notna()]
-df["date"] = pd.to_datetime(df["date"], errors="coerce")
-# df = df.sort_values(by="date")
-# min_date = pd.to_datetime(df["date"].iloc[0])
-# max_date = pd.to_datetime(df["date"].iloc[-1])
+print("loaded","*"*50)
 
-# df['month'] = df["date"].dt.to_period("M")
-# monthly_avg = df.groupby('month')['polarity'].mean()
-# df['avg_polarity'] = df['month'].map(monthly_avg)
+start_date = (df["date"].iloc[0])
+end_date = (df["date"].iloc[-1])
 
 all_sources = [i for i in df["source"].unique()]
 fr_sources =  [i for i in df[df["language"]=="fr"]["source"].unique()]
 nl_sources =  [i for i in df[df["language"]=="nl"]["source"].unique()]
+
+def get_selected_df(df):
+            subjects = ["All","Data Related", "Non Data Related"]
+            selected_subject = st.selectbox("Select Subject to Display", subjects)
+            if selected_subject == "Data Related":
+                return df[df['data_related']==True]
+            elif selected_subject == "Non Data Related":
+                return df[df["data_related"]==False]
+            elif selected_subject == "All":
+                return df
+def get_filtered_df(df):
+    selected_language = st.selectbox("Select Language", ["All", "French", "Dutch"])
+    if selected_language == "French":
+        default_selection = fr_sources
+        selected_newspaper = st.multiselect("Select Newspaper(s) to Display", fr_sources, default=default_selection)
+        filtered_df = df[df["source"].isin(selected_newspaper)]
+        return filtered_df
+    elif selected_language == "Dutch":
+        default_selection = nl_sources
+        selected_newspaper = st.multiselect("Select Newspaper(s) to Display", nl_sources, default=default_selection)
+        filtered_df = df[df["source"].isin(selected_newspaper)]
+        return filtered_df
+    elif selected_language not in ["French","Dutch"]:
+        default_selection = all_sources
+        selected_newspaper = st.multiselect("Select Newspaper(s) to Display", all_sources, default=default_selection)
+        filtered_df = df[df["source"].isin(selected_newspaper)]
+        return filtered_df
 
 def main():
     st.write("# Data Tank")
@@ -71,20 +105,18 @@ def main():
 
     elif tabs == "Information on Data":
         st.write("## Information on Data")
-        
-        start_date = datetime(2020,1,1)
-        end_date = datetime(2023,8,10)
 
-        selected_option = st.selectbox("Select Date Range Option", ["Day", "Week", "Month", "Year"])
+        selected_df = get_selected_df(df)
 
+        selected_option = st.selectbox("Time Frequency",  ["Day", "Week", "Month", "Year"])
         if selected_option == "Day":
-            step = timedelta(days=1)
+            step = datetime.timedelta(days=1)
         elif selected_option == "Week":
-            step = timedelta(weeks=1)
+            step = datetime.timedelta(weeks=1)
         elif selected_option == "Month":
-            step = timedelta(days=30)  # Approximate number of days in a month
+            step = datetime.timedelta(days=30)  # Approximate number of days in a month
         elif selected_option == "Year":
-            step = timedelta(days=365)  # Approximate number of days in a year
+            step = datetime.timedelta(days=365)  # Approximate number of days in a year
 
         selected_date_range = st.slider(
             "Select a date range",
@@ -94,9 +126,11 @@ def main():
             step=step,
             format="DD/MM/YYYY",
         )
-
-        mask = (df['date'] >= selected_date_range[0]) & (df['date'] <= selected_date_range[1])
-        filtered_df = df[mask]
+        
+        mask = (selected_df['date'] >= selected_date_range[0]) & (selected_df['date'] <= selected_date_range[1])
+        filtered_df = selected_df[mask]
+        
+        
       
         # source_counts = filtered_df.groupby(["source"]).size().reset_index(name='num_source')
         # source_counts_sorted = filtered_df.groupby(["source"]).size().reset_index(name='num_source').sort_values("num_source",ascending=False)
@@ -122,26 +156,26 @@ def main():
             .encode(
                 x=alt.X('source:N', axis=alt.Axis(title='Newspapers')),
                 y=alt.Y('count(source):Q', axis=alt.Axis(title='Articles Number')),
-                # color='source',
+                color='source',
             )
             .interactive()
         )
         st.altair_chart(chart, theme="streamlit", use_container_width=True)
 
     elif tabs == "Sentiment Analysis":
-        start_date = datetime(2020,1,1)
-        end_date = datetime(2023,8,10)
 
-        selected_option = st.selectbox("Select Date Range Option", ["Day", "Week", "Month", "Year"])
+        selected_df = get_selected_df(df)
+
+        selected_option = st.selectbox("Time Frequency", ["Day", "Week", "Month", "Year"])
 
         if selected_option == "Day":
-            step = timedelta(days=1)
+            step = datetime.timedelta(days=1)
         elif selected_option == "Week":
-            step = timedelta(weeks=1)
+            step = datetime.timedelta(weeks=1)
         elif selected_option == "Month":
-            step = timedelta(days=30)  # Approximate number of days in a month
+            step = datetime.timedelta(days=30)  # Approximate number of days in a month
         elif selected_option == "Year":
-            step = timedelta(days=365)  # Approximate number of days in a year
+            step = datetime.timedelta(days=365)  # Approximate number of days in a year
 
         selected_date_range = st.slider(
             "Select a date range",
@@ -151,40 +185,8 @@ def main():
             step=step,
             format="DD/MM/YYYY",
         )
-        # selected_date_range = st.slider(
-        #     "Select a date range",
-        #     min_value=min_date,
-        #     max_value=max_date,
-        #     value=(min_date, max_date),
-        #     step=step,
-        #     format="DD/MM/YYYY",
-        # )
-        mask = (df['date'] >= selected_date_range[0]) & (df['date'] <= selected_date_range[1])
-        test_df = df[mask]
-
-        def get_filtered_df(df):
-            selected_language = st.selectbox("Select Language", ["All", "French", "Dutch"])
-            if selected_language == "French":
-                default_selection = fr_sources
-                selected_newspaper = st.multiselect("Select Newspaper(s) to Display", fr_sources, default=default_selection)
-                filtered_df = df[df["source"].isin(selected_newspaper)]
-                return filtered_df
-            elif selected_language == "Dutch":
-                default_selection = nl_sources
-                selected_newspaper = st.multiselect("Select Newspaper(s) to Display", nl_sources, default=default_selection)
-                filtered_df = df[df["source"].isin(selected_newspaper)]
-                return filtered_df
-            elif selected_language not in ["French","Dutch"]:
-                default_selection = all_sources
-                selected_newspaper = st.multiselect("Select Newspaper(s) to Display", all_sources, default=default_selection)
-                filtered_df = df[df["source"].isin(selected_newspaper)]
-                return filtered_df
-            # else:
-            #     default_selection = all_sources
-            #     selected_newspaper = st.multiselect("Select Newspaper(s) to Display", all_sources,default=default_selection)
-            #     filtered_df = df[df["source"].isin(selected_newspaper)]
-            #     return filtered_df
-        
+        mask = (selected_df['date'] >= selected_date_range[0]) & (selected_df['date'] <= selected_date_range[1])
+        test_df = selected_df[mask]
         filtered_df = get_filtered_df(test_df)
 
         use_slider = st.checkbox("Use Sentiment Slider")
