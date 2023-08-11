@@ -117,7 +117,7 @@ The teams are comprised of [Becode](https://becode.org/) trainees from the AI & 
 - [Maciej Krasowski](https://github.com/maciejkrsk)
 - [Natalia Evgrafova](https://github.com/natalievgrafova)
 - [Said Kardic](https://github.com/SaidKardic)
-- [Marco](https://github.com/marcomisco)
+- [Marco Bove](https://github.com/marcomisco)
 - [Melikke Kaya](https://github.com/Melikkekaya)
 - [Dastan Mirzayev](https://github.com/Dastan312)
 
