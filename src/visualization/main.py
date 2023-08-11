@@ -1,5 +1,6 @@
 import pymongo
 import pandas as pd
+import numpy as np
 import streamlit as st
 import altair as alt
 from PIL import Image
@@ -9,6 +10,10 @@ from dotenv import load_dotenv
 import datetime
 import pytz
 from sentence_transformers import SentenceTransformer, util
+
+@st.cache_resource
+def get_embedder():
+    return SentenceTransformer('all-MiniLM-L6-v2')
 
 @st.cache_resource
 def get_articles(limit):
@@ -36,7 +41,7 @@ def get_articles(limit):
     return df
 
 start = datetime.datetime.now()
-df = get_articles(100000)
+df = get_articles(1000)
 print (datetime.datetime.now()-start)
 
 print("loaded","*"*50)
@@ -76,11 +81,11 @@ def get_filtered_df(df):
         return filtered_df
 
 def main():
-    st.write("# Data Tank")
+    st.write("# Data Tank - Sentiment Analysis")
     st.sidebar.write("Data Tank Sentiment Analysis")
     tabs = st.sidebar.radio("Select Functionality", ["Project Overview","Information on Data","Sentiment Analysis", "User Input"])
     if tabs == "Project Overview":
-        st.write("## Belgian Newspaper Articles Sentiment Analysis on Data Related Topics \n ### Project Overview \n Welcome to the Capstone Project, a collaboration between ***becode.org*** and ***the Data Tank***. Our project aims to delve into the fascinating world of public sentiment towards data and related topics in Belgium. By analyzing a vast collection of newspaper articles, we seek to gain valuable insights into how this sentiment has evolved over the years. ")
+        st.write("## Belgian Newspaper Articles Sentiment Analysis on Data Related Topics \n ### Project Overview \n This project was commissioned by DataTank to analyze sentiment around topics related to data from news articles published in Belgium. Our project aims to delve into the fascinating world of public sentiment towards data and related topics in Belgium. By analyzing a vast collection of newspaper articles, we seek to gain valuable insights into how this sentiment has evolved over the years. ")
         st.write("### Collaborators")
         col2, col3, col1, col4, col5 = st.columns(5)
         with col2:
@@ -97,14 +102,13 @@ def main():
             st.write("## ")
         st.write("### Objective \n In an era dominated by data-driven technologies and innovations, it's crucial to understand the public's perception and sentiment towards these topics. Our primary objective is to conduct sentiment analysis on a comprehensive dataset of Belgian newspaper articles. By employing advanced natural language processing techniques, we aim to:")
         st.write("""**Analyze Sentiment Trends:** Through the analysis of sentiment in news articles, we will uncover patterns and shifts in public opinion regarding data-related subjects. This will help us grasp how societal attitudes have changed over time.
-                \n**Identify Key Themes:** Our analysis will identify prevalent themes within the articles, shedding light on the specific aspects of data that have garnered public attention and scrutiny.
                 \n**Visualize Insights:** We will present our findings through visualizations that vividly illustrate sentiment trends and thematic evolution, providing an intuitive understanding of the data.""")
         st.write("""### Expected Impact \n Our project holds significant potential for various stakeholders, including policymakers, researchers, and the general public. By uncovering shifts in sentiment and identifying key concerns, we hope to contribute to informed decision-making and foster a deeper understanding of the societal implications of data-related advancements.
                 \nFor inquiries or more information, please contact us at info@datatank.org""")
 
 
     elif tabs == "Information on Data":
-        st.write("## Information on Data")
+        st.write("## Information on Data \n Analysis is made on a limited amount of data for demonstration purposes. After deployment, the queries can be made on the full dataset.")
 
         selected_df = get_selected_df(df)
 
@@ -163,6 +167,7 @@ def main():
         st.altair_chart(chart, theme="streamlit", use_container_width=True)
 
     elif tabs == "Sentiment Analysis":
+        st.write("## Sentiment Analysis \n Analysis is made on a limited amount of data for demonstration purposes. After deployment, the queries can be made on the full dataset.")
 
         selected_df = get_selected_df(df)
 
@@ -214,35 +219,15 @@ def main():
 
     elif tabs == "User Input":
         st.write("This interface serves as your access point to a carefully curated collection of articles designed to align with your interests. To begin, kindly provide us with either specific keywords or a concise prompt. Our advanced algorithm will then diligently select a range of relevant articles from our comprehensive database.")
-        embedder = SentenceTransformer('all-MiniLM-L6-v2')
-        load_dotenv()
-        connection = os.getenv("MONGODB_URI")
-        client = pymongo.MongoClient(connection)
-        db = client.get_database ('bouman_datatank')
-        col = db["articles"]
-        cursor = col.find({"embedding":{"$exists":True}})
-
+        embedder = get_embedder()
         input_client = st.text_input("Topic of articles to display : ")
-        query = [str(input_client)]
+        query_embedding = embedder.encode(input_client, convert_to_tensor=False)
+        embeddings = np.array(df["embedding"].tolist()).astype(np.float32)
+        cos_scores = util.cos_sim(query_embedding, np.array(df["embedding"].tolist()).astype(np.float32))
+        results = df[(cos_scores[0] > .25).tolist()]
+        columns = ["date","title","polarity","url"]
 
-        query_embedding = embedder.encode(query, convert_to_tensor=False)
-
-        dico_list = []
-        
-        for doc in cursor:
-            # st.write(doc)
-            doc_dico = {}
-            cos_score = util.cos_sim(query_embedding, doc["embedding"])[0]
-            if cos_score.abs() > 0.25:
-                doc_dico["polarity"] = doc["polarity"]
-                doc_dico["source"] = doc["source"]
-                doc_dico["language"] = doc["language"]
-                doc_dico["date"] = doc["date"]
-                doc_dico["url"] = doc["url"]
-                dico_list.append(doc_dico)
-
-        df_output = pd.DataFrame(dico_list)
-        st.dataframe(data=df_output,hide_index=True)
+        st.dataframe(data=results[columns],hide_index=True)
 
 if __name__ == "__main__":
     main()
