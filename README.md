@@ -5,6 +5,10 @@ This project was commissioned by [DataTank](https://datatank.org/) to analyze se
 
 ![LogoX](https://github.com/Bizkochito/SL_data_perception/assets/57298106/ff7c3375-e3b1-42dc-b80f-3c2dbc30d9c4)
 
+## Project Presentation
+
+For a comprehensive overview of our project, its methodologies, and findings, please refer to our [presentation on Google Slides](https://docs.google.com/presentation/d/1jCWTUQgEO22PRISkzgC-LwYTkOgoQiVc_eluAiUNjbk/edit#slide=id.p).
+
 
 ## Project Workflow
 
