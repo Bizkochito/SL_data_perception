@@ -138,6 +138,8 @@ The teams are comprised of [Becode](https://becode.org/) trainees from the AI & 
 - [TextBlob](https://textblob.readthedocs.io/en/dev/)
 - [Pandas](https://pandas.pydata.org/)
 - [NumPy](https://numpy.org/)
+- [Apache Airflow](https://airflow.apache.org/)
+
 
 ## Getting Started
 
